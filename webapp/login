@@ -1,0 +1,54 @@
+<header><a href="/pages/home">Home Page</a></header>
+<div style='float: right'><a href='/pages/register'>Register</a></div>
+<div id="login_page">
+
+    <p> You must login to this site.<p>
+
+    <form name="login" id="login" method="post" enctype="text/plain">
+    <div id="error" class="error"></div>
+    <pre>
+<b> Enter Username and Password to login. </b>
+
+<label>Username
+<input title="Username" id="username" type="text" name="username" size="26">
+</label>
+<label>Password
+<input title="Password" id="password" type="password" name="password" size="26">
+</label>
+          <input type="submit" value="LOGIN">
+    </pre></form>
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if (window.location.href.match(/(fail)/) != null) {
+                $("#error").html("Invalid login credentials.");
+            }
+        });
+        $("form#login").submit(function (e) {
+            if (!$("input#username").val() || !$("input#password").val()) {
+                $("#error").html("You need to enter a username and password.");
+            } else {
+                var info = { username: $("input#username").val(),
+                    password: $("input#password").val() };
+                $.ajax({
+                    type: "POST",
+                    url: "/service/login",
+                    data: JSON.stringify(info),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        window.location = "/pages/admin/home";
+                    },
+                    error: function () {
+                        var ext = window.location.href.match(/(fail)/) ? "" : "?fail";
+                        window.location = window.location + ext;
+                        return false;
+                    }
+                });
+            }
+            return false;
+        });
+    </script>
+
+</div> <!-- #login_page -->

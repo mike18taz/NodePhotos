@@ -1,0 +1,12 @@
+{
+  "name": "spotlight-manager",
+  "description": "Get spotlight photos",
+  "version": "1.0.0",
+  "main": "./content/spotlight.js",
+  "private": true,
+  "dependencies": {
+    "async": "^2.6.2",
+    "mongodb": "^3.1.13"
+
+  }
+}

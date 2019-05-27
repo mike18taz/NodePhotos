@@ -1,0 +1,41 @@
+<header><a href="/pages/home">Home Page</a></header>
+<div id="albums_manager_page">
+    <p> There are {{ photos.length }} photos in this album</p>
+    {{#photos}}
+    <div id="photos">
+        <div class="photo">
+            <div class='photo_holder'>
+                <img style='width: 250px; height: 250px; background-color: #fbb'
+                     src="{{url}}" border="0"/></div>
+            <div class='photo_desc'><p class="desc">{{ desc }}</p></div>
+        </div>
+    </div> <!-- #photos -->
+    <div style="clear: left"></div>
+    {{/photos}}
+    {{^photos}}
+    <p> This album doesn't have any photos in it, sorry.<p>
+    {{/photos}}
+    <p> There are {{ other.length }} other files in this album</p>
+    {{#other}}
+    <div id="other">
+        <div class="otherfiles">
+            <div class='other_holder'>
+                <a href="{{url}}">{{desc}}</a>
+            </div>
+        </div>
+    </div> <!-- #other -->
+    <div style="clear: left"></div>
+    {{/other}}
+    {{^other}}
+    <p> This album doesn't have any other files in it, sorry.<p>
+    {{/other}}
+    <form method="post" enctype="multipart/form-data">
+    <pre>
+<b> Enter description and filename to add a file. </b>
+    Description: <input type="text" name="title" size="26">
+
+<input type="file" name="filename" size="26">
+          <input type="submit" value="ADD File">
+    </pre></form>
+
+</div> <!-- #albums_manager_page -->

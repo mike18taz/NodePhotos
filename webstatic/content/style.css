@@ -1,0 +1,125 @@
+/*
+Style default Cascading Style Sheets for Photo Albums Site
+*/
+/*
+    Created on : Mar 26, 2018
+    Author     : Michael Downs
+*/
+
+.otherfiles a {
+    color: #0f99cb;
+}
+
+body {
+    width: 80%;
+    margin: auto;
+}
+
+.desc {
+    color: #272fdc;
+    font-style: oblique;
+    font-weight: bold;
+}
+
+
+
+div {
+    color: #272fdc;
+    font-style: oblique;
+    font-weight: bold;
+    font-size: x-large;
+}
+
+img {
+    padding: 4px;
+    border: 8px;
+    width: 280px;
+    height: 280px;
+    background-color: rgba(167, 169, 165, 0.5);
+}
+
+.button {
+    padding: 8px 24px;
+    font-size: 16px;
+}
+
+ul.admin li {
+    font-size: x-large;
+    padding: 4px;
+}
+
+ul.photos {
+    list-style-type: none;
+    list-style-image: initial;
+}
+
+ul.navigation {
+    list-style-type: none;
+    float: start;
+    color: #215e05;
+    font-style: oblique;
+    font-weight: bold;
+    font-size: x-large;
+}
+
+ul.navigation li,a,a:visited {
+    color: #215e05;
+    display: inline-block;
+    padding-right: 6px;
+}
+
+
+li.album {
+    color: #6b1714;
+    font-style: oblique;
+    font-weight: bold;
+    font-size: x-large;
+}
+
+li.album a:visited{
+    color: #871e99;
+}
+
+li.photo {
+    display: inline-block;
+}
+
+.photo_holder {
+    display: inline-block;
+}
+
+div#photos div.photo {
+    color: #272fdc;
+    float: left;
+    width: 275px;
+    height: 325px;
+}
+
+.error {
+    color: #800;
+}
+
+footer {
+    position: static;
+}
+
+form {
+    margin-top: 1%;
+    margin-left: 1%;
+    margin-right: 1%;
+}
+
+header {
+
+}
+
+h1 {
+    text-align: center;
+    margin: 16px;
+}
+
+p {
+    color: #872fdc;
+    font-style: normal;
+    font-weight: bold;
+}
