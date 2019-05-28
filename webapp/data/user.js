@@ -3,7 +3,7 @@
  */
 
 var async = require('async'),
-    bcrypt = require('bcrypt'),
+    bcrypt = require('bcryptjs'),
     db = require("../data/db.js"),
     uuid = require('uuid'),
     backhelp = require("./backend_helpers.js");
