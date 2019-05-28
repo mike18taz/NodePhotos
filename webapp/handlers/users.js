@@ -5,7 +5,7 @@
 var helpers = require('./helpers.js'),
     user_data = require("../data/user.js"),
     async = require('async'),
-    bcrypt = require('bcrypt'),
+    bcrypt = require('bcryptjs'),
     fs = require('fs');
 
 exports.version = "0.1.0";
