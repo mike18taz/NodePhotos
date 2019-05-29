@@ -150,8 +150,8 @@ db.init(function (err, results) {
     }
     console.log(results);
     console.log("Initialization complete. Running Server.");
-    //app.listen(3000);
-    const port = process.env.PORT || 1337;
+    //app.listen(1337);
+    const port = process.env.PORT || 3000;
     app.listen(port);
     console.log("Server running at http://localhost:%d", port);
 });
