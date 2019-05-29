@@ -1,0 +1,9 @@
+{
+  "name": "node-photos",
+  "description": "Upgraded NodeSite with Express, DB, and Authentication",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+        "postinstall": "cd webapp && npm install"
+    }
+}
