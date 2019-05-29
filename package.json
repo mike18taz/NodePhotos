@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-        "postinstall": "cd webapp && npm install"
+       "start": "cd webapp && npm install"
     }
 }
