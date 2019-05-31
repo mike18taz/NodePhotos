@@ -3,8 +3,12 @@
  */
 let mongo = require('mongodb').MongoClient;
 var async = require('async'),
-    local = require("../local.config.js");
+    //local = require("../local.config.js");
+    local = require("../config/env/local-development");
+    
+var database = local.config.db.database;
 
+/*
 var database = local.config.db_config.database
     ? local.config.db_config.database: 'PhotoAlbums';
 var host = local.config.db_config.host
@@ -14,6 +18,7 @@ var port = local.config.db_config.port
     : 27017;
 var ps = local.config.db_config.poolSize
     ? local.config.db_config.poolSize : 5;
+*/
 
 exports.albums = null;
 exports.photos = null;
@@ -21,7 +26,8 @@ exports.users = null;
 
 //Setup MongoDB connection
 
-let murl = "mongodb://" + host + ":" + port;
+//let murl = "mongodb://" + host + ":" + port;
+let murl = local.config.db.uri;
 /*
 init(function (err, results) {
     if (err) {
@@ -36,13 +42,14 @@ exports.init = function (callback) {
 //function init(callback) {
 
     // 1. open database connection
+
     mongo.connect(murl, { "useNewUrlParser": true }, (err, client) => {
         if (err) {
             console.error(err);
             return
         }
         let db = client.db(database);
-        console.log("** 1. open db server...");
+        console.log("** 1. open Cosmos DB server...");
 
 
         async.waterfall([
