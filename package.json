@@ -7,7 +7,7 @@
       "debug": "^4.1.1"
   },
   "scripts": {
-      "start": "cd webapp && npm install"
+      "start": "cd webapp && npm install --unsafe-perm"
   }
   
 }
