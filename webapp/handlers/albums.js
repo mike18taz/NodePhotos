@@ -283,7 +283,7 @@ function get_totals(albums, callback) {
     var albums_out = [];
     var total_count = 0;
    // async.waterfall([
-    if (albums && albums.length > 1000) {
+    if (albums && albums.length > 0) {
 
         async.forEach(albums, (element, cb) => {
 
