@@ -20,8 +20,8 @@ var async = require('async'),
     cp = require("cookie-parser"),
     cs = require("cookie-session"),
     fs = require('fs'),
-    url = require('url'),
-    qs = require('querystring'),
+    //url = require('url'),
+    //qs = require('querystring'),
     formidable = require('formidable');
 
 
@@ -150,8 +150,9 @@ db.init(function (err, results) {
     }
     console.log(results);
     console.log("Initialization complete. Running Server.");
+    //app.listen(3000);
     //app.listen(1337);
-    const port = process.env.PORT || 3000;
+    const port = process.env.PORT || 8080;
     app.listen(port);
     console.log("Server running at http://localhost:%d", port);
 });

@@ -3,7 +3,11 @@
   "description": "Upgraded NodeSite with Express, DB, and Authentication",
   "version": "0.1.0",
   "private": true,
+  "dependencies": {
+      "debug": "^4.1.1"
+  },
   "scripts": {
-       "start": "cd webapp && npm install"
-    }
+      "start": "cd webapp && npm install"
+  }
+  
 }
