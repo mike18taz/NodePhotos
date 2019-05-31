@@ -9,7 +9,7 @@ var
     // formidable = require('formidable');
 
 var user_dir = os.userInfo().username;
-var user_dir = Downs;
+var user_dir = "Downs";
 console.log("Username: " + user_dir);
 //var album_data = require("../data/album.js");
 local = require("../config/env/local-development");
