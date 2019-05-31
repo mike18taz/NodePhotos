@@ -283,32 +283,38 @@ function get_totals(albums, callback) {
     var albums_out = [];
     var total_count = 0;
    // async.waterfall([
-    async.forEach(albums, (element, cb) => {
+    if (albums && albums.length > 1000) {
 
-        album_data.albums_total(element.name,  (err, result) => {
-            if (err) {
-                console.log("error");
-                helpers.invalid_resource();
-                //return;
-            }
-                var album_length = result;
-                //console.log("result: " + result);
-                //console.log(album_length);
-                albums_out.push({name: element.name, count: album_length});
-                total_count += album_length;
+        async.forEach(albums, (element, cb) => {
 
-                var the_data = {};
-                var is_ready = false;
-                if(albums_out.length === albums.length) {
-                    is_ready = true;
-                    the_data = {albums:albums_out.sort(), allcount: total_count};
+            album_data.albums_total(element.name,  (err, result) => {
+                if (err) {
+                    console.log("error");
+                    helpers.invalid_resource();
+                    //return;
                 }
-                cb(null, get(err, the_data, is_ready));
+                    var album_length = result;
+                    //console.log("result: " + result);
+                    //console.log(album_length);
+                    albums_out.push({name: element.name, count: album_length});
+                    total_count += album_length;
 
-            });
+                    var the_data = {};
+                    var is_ready = false;
+                    if(albums_out.length === albums.length) {
+                        is_ready = true;
+                        the_data = {albums:albums_out.sort(), allcount: total_count};
+                    }
+                    cb(null, get(err, the_data, is_ready));
+
+                });
         //console.log("total2: " + total_count);
         //cb(null, get(err, the_data));
         });
+    } else {
+        //cb(null, get(err, the_data, is_ready));
+        callback(null, {});
+    }
 
     //(err) => {
     //    callback(err, err ? null : {albums: albums_out.sort(), allcount: result});
@@ -323,7 +329,7 @@ function get_totals(albums, callback) {
         if (err) {
             console.log("error: " + err);
         } else if (is_ready === true){
-            callback( null, the_data);
+            callback(null, the_data);
         } else {
             //callback(null);
         }
