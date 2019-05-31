@@ -10,15 +10,18 @@ var
 
 var user_dir = os.userInfo().username;
 console.log("Username: " + user_dir);
+//var album_data = require("../data/album.js");
+local = require("../config/env/local-development");
 
 var create_album = false;
 
 var today = new Date();
 var date_added = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
-var appDir = path.dirname(require.main.filename) + "\\";
+//var appDir = path.dirname(require.main.filename) + "\\";
+var appDir = local.config.static_content;
 // var current_directory = appDir + "albums/spotlight/" + user_dir + date_added + "/";
 var album_directory = user_dir + date_added;
-appDir = appDir.replace(/\\/g,"/").replace("app","static");
+//appDir = appDir.replace(/\\/g,"/").replace("app","static");
 //var current_win_directory = appDir + "albums/" + album_directory;
 var current_directory = appDir + "albums/" + album_directory;
 
@@ -41,6 +44,7 @@ function setup_dir(){
 exports.get_spotlight_pics = function () {
 
     //var current_directory = appDir + "albums/spotlight/" + user_dir + date_added + "/";
+    //if (album_data.create_album(req.body, cb)) {
     if (make_directory(current_directory)) {
         console.log("getting pics");
         get_pics(setup_dir());
@@ -56,6 +60,7 @@ function add_to_db(album_dir, album_needed) {
     udb = require('./update_db.js');
     console.log("adding to db");
     udb.update_db(album_dir, album_needed, true);
+
 }
 
 function get_pics(directory) {
@@ -113,6 +118,7 @@ function make_directory(directory) {
     } else {
         try {
             fs.mkdirSync(directory);
+
             create_album = true;
             return true;
         } catch(e) {
@@ -214,6 +220,19 @@ function load_pics(directory, callback) {
 
                             only_files.push({ filename: file_name });
                             console.log(only_files[count_files]);
+
+                            /*
+                            var album = new Album(album_data);
+                            req.body.filename = files.photo_file.name; //.photo_file;
+                            req.body.albumname = fields.albumname;
+                            req.body.description = fields.description;
+                            req.body.date = fields.date;
+                            var default_path = "/" + album.name;
+                            //var this_path = req.files.
+                            console.log("Name: " + files.photo_file.name + " file: " + JSON.stringify(files.photo_file.path));
+                        
+                            album.add_photo(req.body, files.photo_file.path, cb);
+                            */
 
 
                             copy_file(directory + "/" + file_name, count_files, date_created, stats.size);

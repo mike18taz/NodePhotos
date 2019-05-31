@@ -8,10 +8,15 @@ var async = require('async'),
     path = require("path"),
     fs = require('fs'),
     os = require('os'),
-    local = require("../local.config.js");
+    //local = require("../local.config.js");
+    local = require("../config/env/local-development");
 
 
-
+let murl = local.config.db.uri;
+let database = local.config.db.database;
+var ps = local.config.db.poolSize
+    ? local.config.db.poolSize : 5;
+/*    
 var database = local.config.db_config.database
     ? local.config.db_config.database: 'PhotoAlbums';
 var host = local.config.db_config.host
@@ -21,6 +26,7 @@ var port = local.config.db_config.port
     : 27017;
 var ps = local.config.db_config.poolSize
     ? local.config.db_config.poolSize : 5;
+*/
 
 
 //Setup directory information
@@ -33,8 +39,9 @@ var user_dir = os.userInfo().username;
 
 var c_dir = "C:/";
 //var album_name = "spotlight";
-
-var albums_dir = "RegisServer/NodeSite/webstatic/albums/";
+//var albums_dir = "RegisServer/NodeSite/webstatic/albums/";
+var appDir = local.config.static_content;
+var albums_dir = appDir + "albums/";
 //var album_dir = ""; //spotlight/userDATE/
 
 exports.update_db = function (album_dir, album_needed, ready_to_update) {
@@ -53,8 +60,9 @@ exports.update_db = function (album_dir, album_needed, ready_to_update) {
 
 function link_files_to_db({ files: files}, album_needed, album_dir) {
 
-    var mongoclient = new Mongo(new Server(host, port,
-        {auto_reconnect: true, poolSize: ps}), {useNewUrlParser: true});
+    var mongoclient = new Mongo(murl, {useNewUrlParser: true, autoReconnect: true, poolSize: ps});
+    //var mongoclient = new Mongo(new Server(host, port,
+    //    {auto_reconnect: true, poolSize: ps}), {useNewUrlParser: true});
 
     mongoclient.connect(function (err) { // , mongoClient
         var db = mongoclient.db(database);
@@ -97,7 +105,7 @@ function link_files_to_db({ files: files}, album_needed, album_dir) {
 
 
 function get_pics(c_dir, album_dir, album_needed) {
-    var directory = c_dir + albums_dir + album_dir;
+    var directory = albums_dir + album_dir; // excluded c_dir
     var src ="";
     var dest = "";
 
