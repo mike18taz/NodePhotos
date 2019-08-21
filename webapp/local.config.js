@@ -4,14 +4,15 @@
 
 'use strict';
 
+/*
 module.exports.config = {
   db: {
     uri: 'mongodb://nodephotosdb:YXhSzR5ihOx4lqelBVSpk30dIg3NqRElcpN6QPhqJQ114VwpCrvdmr3JX0Ja4NbUgq3qccjjfLWwI3sx5NDP2w==@nodephotosdb.documents.azure.com:10255/mean-dev?ssl=true&sslverifycertificate=false'
   }
 };
+*/
 
-
-exports.config = {
+module.exports.config = {
     db_config: {
         host: "localhost",
         port: "27017",

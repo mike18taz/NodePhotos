@@ -8,15 +8,16 @@ var async = require('async'),
     path = require("path"),
     fs = require('fs'),
     os = require('os'),
-    //local = require("../local.config.js");
-    local = require("../config/env/local-development");
+    local = require("../local.config.js");
+    //local = require("../config/env/local-development");
 
 
-let murl = local.config.db.uri;
-let database = local.config.db.database;
-var ps = local.config.db.poolSize
-    ? local.config.db.poolSize : 5;
-/*    
+//let murl = local.config.db.uri;
+//let database = local.config.db.database;
+//var ps = local.config.db.poolSize
+ //   ? local.config.db_config.poolSize : 5;
+
+    
 var database = local.config.db_config.database
     ? local.config.db_config.database: 'PhotoAlbums';
 var host = local.config.db_config.host
@@ -26,7 +27,7 @@ var port = local.config.db_config.port
     : 27017;
 var ps = local.config.db_config.poolSize
     ? local.config.db_config.poolSize : 5;
-*/
+
 
 
 //Setup directory information
@@ -60,9 +61,9 @@ exports.update_db = function (album_dir, album_needed, ready_to_update) {
 
 function link_files_to_db({ files: files}, album_needed, album_dir) {
 
-    var mongoclient = new Mongo(murl, {useNewUrlParser: true, autoReconnect: true, poolSize: ps});
-    //var mongoclient = new Mongo(new Server(host, port,
-    //    {auto_reconnect: true, poolSize: ps}), {useNewUrlParser: true});
+    //var mongoclient = new Mongo(murl, {useNewUrlParser: true, autoReconnect: true, poolSize: ps});
+    var mongoclient = new Mongo(new Server(host, port,
+        {auto_reconnect: true, poolSize: ps}), {useNewUrlParser: true});
 
     mongoclient.connect(function (err) { // , mongoClient
         var db = mongoclient.db(database);
