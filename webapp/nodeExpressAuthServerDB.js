@@ -6,6 +6,7 @@
  * Created by Downs on 7/18/2019.
  */
 
+console.log("attempting to start webapp");
 
 var express = require('express');
 var app = express();
@@ -152,7 +153,8 @@ db.init(function (err, results) {
     console.log("Initialization complete. Running Server.");
     //app.listen(3000);
     //app.listen(1337);
-    const port = process.env.PORT || 8080;
+    //const port = process.env.PORT || 8080;
+    const port = process.env.PORT || 10255;
     app.listen(port);
     console.log("Server running at http://localhost:%d", port);
 });

@@ -4,7 +4,8 @@
 
 var fs = require('fs'),
     crypto = require("crypto"),
-    local = require('../local.config.js'),
+    //local = require('../local.config.js'),
+    local = require("../config/env/local-development"), //this for cosmodb
     db = require('../data/db.js'),
     path = require("path"),
     async = require('async'),

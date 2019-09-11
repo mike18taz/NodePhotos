@@ -15,8 +15,8 @@ var user_dir = os.userInfo().username;
 var user_dir = "Downs";
 console.log("Username: " + user_dir);
 //var album_data = require("../data/album.js");
-//local = require("../config/env/local-development");
-local = require("../local.config.js");
+local = require("../config/env/local-development");
+//local = require("../local.config.js");
 
 var create_album = false;
 

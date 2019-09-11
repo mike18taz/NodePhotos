@@ -1,4 +1,4 @@
 node_modules
+NodePhotos/node_modules/*
 webapp/node_modules
-webstatic/albums/*
 GitKeyVSC.txt
