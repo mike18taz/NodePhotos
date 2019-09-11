@@ -6,7 +6,7 @@
  * Created by Downs on 7/18/2019.
  */
 
-console.log("attempting to start webapp");
+console.log("attempting to start live webapp");
 
 var express = require('express');
 var app = express();
