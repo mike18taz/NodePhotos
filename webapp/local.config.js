@@ -1,5 +1,5 @@
 /**
- * Created by Downs on 4/19/2019.
+ * Created by Downs on 7/19/2019.
  */
 
 'use strict';
@@ -11,7 +11,6 @@ module.exports.config = {
   }
 };
 */
-
 module.exports.config = {
     db_config: {
         host: "localhost",

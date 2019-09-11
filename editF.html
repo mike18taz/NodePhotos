@@ -1,0 +1,960 @@
+<script src="/sites/NAVSEA_RPO/SiteAssets/js/jquery-3.4.1.min2.js" type="text/javascript"></script>
+<script src="/sites/NAVSEA_RPO/SiteAssets/js/jquery.SPServices.min.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    var debugLevel = 6;
+    var N6 = 5160; //16147 or 5160
+    var unitName = "";
+    var syElement = "";
+    var sy = "";
+    var syName = "";
+    var task;
+    var qual;
+    var month;
+    var spot;
+    var taskID = "";    //this is for TaskChange requests
+    var taskMonth = ""; //this is for TaskChange requests
+    var monthID = 0     //this is for TaskChange requests
+    var mDate = 0;      //this is for TaskChange requests
+    var mIndex = 0;     //this is for TaskChange requests
+    var mText = "";     //this is for TaskChange requests
+    var monthChangeSelected = false;
+    var taskChangeSelected = false;
+    var taskSpot = "";  //this is for TaskChange requests
+    var taskQual = "";
+    var taskQualGroup = "";
+    var taskQualNumber = "";
+    var status = "";
+    var userLevel = 0;
+    var overrideSelected = 1;    //1 is value for Disabled, 2 is value for Off, higher values for specific PMs
+
+    var currentUser = checkApprover();
+    //alert(currentUser);
+
+    var PMs = "";
+    var SS = "";
+    var TMs = "";
+    var UAs = "";
+
+    var thisID = "";
+    
+    //var shipyardArray = shipyard.split("%20");
+    //shipyard = shipyardArray.join(" ");
+
+    //var qualArray0 = qual.split("%20");
+    //qual = qualArray0.join(" ");
+
+    //var qualArray0 = qual.split("-");
+    //var qualArray1 = qualArray0[1].split(": ");
+    //var q = qualArray0[0] + ":" + qualArray1[1];
+
+    var init = 0;
+    //alert("Verifying approval level...");
+
+$(document).ready(function() {
+
+    //var approverRole = checkApprover();
+    
+    document.querySelector("[title='IsValid']").value = "No";
+    document.querySelector("[title='.ChangeArray']").value = "0";
+    thisID = document.querySelector("[title='thisID']").value;
+    syElement = document.querySelector("[title='Shipyard']");
+    sy =syElement.value;
+    syName = syElement.options[syElement.selectedIndex].text;
+    //alert(syName);
+    task = document.querySelector("[title='Task']").value;
+    qual = document.querySelector("[title='Qual']").value; 
+    month = document.querySelector("[title='Month']").value;
+    spot = document.querySelector("[title='Spot']").value; 
+    var stage = document.querySelector("[title='Stage']").value;
+    status = document.querySelector("[title='Status']").value;
+    document.querySelector("[title='OverrideMode']").value = overrideSelected;  
+
+    taskID = task;      //task should remain constant in case of a task change that is reverted
+    taskQual = qual;    //qual should remain constant in case of a task change that is reverted
+    var taskCanceled = "";
+    var taskQualArray = taskQual.split(": ");    //split qualGroup from qualLevel (SJ, SA, SH)
+    taskQualGroup = taskQualArray[0];
+    var taskQualArray = taskQual.split("-"); 
+    taskQualnumber = taskQualArray[0];
+
+
+    $().SPServices.SPDisplayRelatedInfo({
+    columnName: "Sailor Name",
+    relatedList: "{d77298fa-89d9-4caf-a2b2-bb16600f41e4}",
+    relatedListColumn: "Sailor_x0020_Name",
+    relatedColumns: ["Preferred_x0020_Email", "SMunitName", "PRIMARY_QUAL", "ADDITIONAL_QUALS", "Resume"],
+    displayFormat: "list",
+    completefunc: checkQuals,
+    debug: true
+    });
+    
+    if (currentUser == N6) {  //5160
+        lookupUAs();
+        lookupTMs();
+        lookupStaffAndPMs();
+        userLevel = debugLevel;
+        //alert(userLevel);
+    } else {
+    
+        //Stage column is a number that can only be between (inclusive) 0 and 6
+        if (stage == 2) {           //wating on UA (set by default when request is created)
+            lookupUAs();
+            
+            if (userLevel !== 2) {  
+                lookupStaffAndPMs();    //allow PM to override and approve        
+            }
+        } else if (stage == 3) {    //waiting on TM
+            lookupTMs();
+            lookupStaffAndPMs(); 
+            if (userLevel !== 3) {  
+                //lookupStaffAndPMs();  //allow PM to override and approve        
+            }
+        } else if (stage == 4) {    //waiting on PM to approve and Issue BCN
+            lookupStaffAndPMs();
+        } else if (stage == 5) {    //BCN Issued - fill requirement
+            lookupStaffAndPMs();
+        } else if (stage == 6) {    //complete (archived)
+            lockFields();
+        } else if (stage == 0) {    //canceled (archived)
+            lockFields();
+        } else {                    //initial or rejected (stage == 1)
+            lockFields();
+            // check if currentuser == Sailor so they can edit - future dev 
+            lookupUAs();
+            lookupTMs();
+            lookupStaffAndPMs(); 
+        }
+    }
+
+    
+    
+    //alert("PMs are: " + PMs);
+    //alert("TMs are: " + TMs);
+    //alert("UAs are: " + UAs);
+    //alert("setting user view");
+    setUserView();
+    
+    //var title = document.querySelector("[title='Title']").value = sy + "_" + q + "_" + month + "_" + spot;  
+ 
+    //$('nobr:contains("Shipyard")').closest('tr').attr('disabled', 'disabled');
+
+    
+    //var userLevel = getUserLevel();
+    
+
+    
+  
+    //$('nobr:contains("Status")').closest('tr').attr('disabled', 'disabled');
+    //$('nobr:contains("Title")').closest('tr').attr(readonly="readonly");
+    //$("input[title='IsValid']").attr('disabled', 'disabled');
+/*
+    $().SPServices.SPDisplayRelatedInfo({
+        columnName: "Task",
+        relatedList: "{c375aba7-ae97-47f6-bdc9-4555f96c8169}",
+        relatedListColumn: "Title",
+        relatedColumns: ["Details", "OCT_x002e_", "NOV_x002e_", "DEC_x002e_", "JAN_x002e_", "FEB_x002e_", "MAR_x002e_", "APR_x002e_", "MAY_x002e_", "JUN_x002e_", "JUL_x002e_", "AUG_x002e_", "SEP_x002e_"],
+        displayFormat: "table",
+        debug: true
+    });
+*/
+    //alert("setting shipyard info");
+    $().SPServices.SPDisplayRelatedInfo({
+        columnName: "Shipyard",
+        relatedList: "{29801c24-30c0-4d60-aa29-a1702085f044}",
+        relatedListColumn: "Shipyard_Name",
+        relatedColumns: ["Indoc", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP"],
+        displayFormat: "table",
+        CAMLQuery: "<Eq><FieldRef Name='Status'/><Value Type='Text'>Active</Value></Eq>",
+        debug: true
+    });
+    //relatedList: "{E1D8696A-0096-4A41-8C9E-8BBA35EF0665}",
+
+    //alert("setting process info");
+    $().SPServices.SPFilterDropdown({
+        relationshipList: "{4d9a54f6-775c-43a1-9021-2f1afd534896}",
+        relationshipListColumn: "Title",
+        relationshipListSortAscending: true, 
+        relationshipListSortColumn: "Order",
+        columnName: "Process",
+        listName: $().SPServices.SPListNameFromUrl(),
+        noneText: "(None)",
+        CAMLQuery: "<And><Leq><FieldRef Name='Stage'/><Value Type='Number'>" + stage + "</Value></Leq>" 
+            + "<Leq><FieldRef Name='Level'/><Value Type='Number'>" + userLevel + "</Value></Leq></And>",
+        CAMLQueryOptions: "<QueryOptions></QueryOptions>",
+        completefunc: null,
+        debug: true
+    }); 
+
+    $().SPServices.SPDisplayRelatedInfo({
+        columnName: "Process",
+        relatedList: "{4d9a54f6-775c-43a1-9021-2f1afd534896}",
+        relatedListColumn: "Title",
+        relatedColumns: ["Notes", "Stage", "Level"],
+        displayFormat: "table",
+        completefunc: processRequest,
+        debug: true
+    });
+
+    $().SPServices.SPDisplayRelatedInfo({
+        columnName: "OverrideMode",
+        relatedList: "{db5cb581-a619-437e-bdcc-a9955438f9ab}",
+        relatedListColumn: "Title",
+        relatedColumns: ["Info"],
+        displayFormat: "list",
+        completefunc: overrideMode,
+        debug: true
+    });
+
+    $().SPServices.SPDisplayRelatedInfo({
+        columnName: "TaskChange",
+        relatedList: "{c375aba7-ae97-47f6-bdc9-4555f96c8169}",
+        relatedListColumn: "Title",
+        relatedColumns: ["_x002e_SY", "_x002e_AREA", "_x002e_Canceled", "Details", "OCT_x002e_", "NOV_x002e_", "DEC_x002e_", "JAN_x002e_", "FEB_x002e_", "MAR_x002e_", "APR_x002e_", "MAY_x002e_", "JUN_x002e_", "JUL_x002e_", "AUG_x002e_", "SEP_x002e_"],
+        displayFormat: "table",
+        completefunc: modifyTask,
+        debug: true
+    });
+
+    $().SPServices.SPFilterDropdown({
+        relationshipList: "{0df6bc48-2e90-4806-8cd0-7f782e3f5aa3}",
+        relationshipListColumn: "Title",
+        relationshipListSortAscending: true, 
+        relationshipListSortColumn: "Order",
+        columnName: "MonthChange",
+        noneText: "(None)",
+        debug: true
+    });
+
+
+    $().SPServices.SPDisplayRelatedInfo({
+        columnName: "MonthChange",
+        relatedList: "{0df6bc48-2e90-4806-8cd0-7f782e3f5aa3}",
+        relatedListColumn: "Title",
+        relatedColumns: ["M", "Title", "Order"],
+        displayFormat: "table",
+        completefunc: modifyMonth,
+        debug: true
+    });                                                                               
+
+});
+
+
+
+function lockFields() {
+    // set all fields disabled but visible
+}
+
+function setUserView() {
+    if (userLevel > 5) {    //N6 - show and enable everything
+        alert("Approval level " + userLevel + ". Hello N6, Chief Downs.");
+        overrideSelected = 2;
+        document.querySelector("[title='OverrideMode']").value = overrideSelected;
+    } else {
+         
+        $("select[title='Sailor Name']").attr('disabled', 'disabled');
+        $("input[title='Title']").attr('disabled', 'disabled');
+        $("input[title='Status']").attr('disabled', 'disabled');
+        $("input[title='IsValid']").attr('disabled', 'disabled');
+        $("input[title='Qual']").attr('disabled', 'disabled');
+        $("input[title='Qual']").closest('tr').hide();
+        
+        $("input[title='thisID']").closest('tr').hide();
+        $("input[title='Preferred Email']").closest('tr').hide();
+        
+
+         //These settings are reversed through OverrideMode  
+        $("select[title='Status']").prop("disabled", true);
+        $("input[title='IsValid']").closest('tr').hide();
+        $("select[title='TaskChange']").closest('tr').hide();
+        $("select[title='TaskChange']").prop("disabled", true);
+        $("select[title='Task']").prop("disabled", true);
+        $("select[title='Shipyard']").prop("disabled", true);
+        $("select[title='Month']").prop("disabled", true);
+        //$("select[title='Month']").closest('tr').hide();
+        $("input[title='Spot']").closest('tr').hide();
+        $("input[title='Stage']").closest('tr').hide();
+
+        $("select[title='TaskChange']").closest('tr').hide();
+        $("select[title='TaskChange']").prop("disabled", true);
+        $("select[title='MonthChange']").closest('tr').hide();
+        $("select[title='MonthChange']").prop("disabled", true);
+        $("input[title='SpotChange']").closest('tr').hide();
+        $("input[title='.ChangeArray']").closest('tr').hide();
+        
+        
+
+
+        if (userLevel == 5) {    //PM - can edit most fields
+            //alert("Approval level " + userLevel + ". Hello PM,");
+            overrideSelected = 2;
+            document.querySelector("[title='OverrideMode']").value = overrideSelected;  
+
+        } else if (userLevel == 4) {    //PM - can edit most fields
+            //alert("Approval level " + userLevel + ". Hello SS,");
+            $("select[title='OverrideMode']").closest('tr').hide();
+
+        } else {    //below PM, limited privileges 
+
+            //$('nobr:contains("IsValid")').closest('tr').hide();
+            
+
+            $("select[title='OverrideMode']").closest('tr').hide();
+            
+            $("input[title='BCN']").closest('tr').hide();
+
+            if (userLevel == 3) {    //TM
+                //alert("Approval level " + userLevel + ". Hello TM,");
+
+            } else if (userLevel == 2) {     //UA
+                //alert("Approval level " + userLevel + ". Hello UA,");
+                $("input[title='DateStart']").attr('disabled', 'disabled');
+                $("input[title='DateEnd']").attr('disabled', 'disabled');
+
+            } else {    //No Approver privileges
+                alert("Level " + userLevel + ".\nYou are not an authorized approver.");
+                $("select[title='Status']").prop("disabled", true);
+                $("select[title='Process']").prop("disabled", true);
+                $("input[title='Process']").closest('tr').hide();
+                $("textarea[title='Approver Notes']").closest('tr').hide();
+                $("textarea[title='Reject Notes']").closest('tr').hide();
+                $("input[title='DateStart']").attr('disabled', 'disabled');
+                $("input[title='DateEnd']").attr('disabled', 'disabled');
+            }
+        }
+    }
+}
+
+function determineMonth() {
+
+    switch(taskMonth) {
+        case 1:
+            mDate = 10;
+            mIndex = 1;
+            mText = "OCT"; 
+            break;
+        case 2:
+            mDate = 11;
+            mIndex = 2;
+            mText = "NOV"; 
+            break;
+        case 3:
+            mDate = 12;
+            mIndex = 3;
+            mText = "DEC"; 
+            break;
+        case 4:
+            mDate = 1;
+            mIndex = 4;
+            mText = "JAN";
+            break;
+        case 5:
+            mDate = 2;
+            mIndex = 5;
+            mText = "FEB";
+            break;
+        case 6:
+            mDate = 3;
+            mIndex = 6;
+            mText = "MAR";
+            break;
+        case 7:
+            mDate = 4;
+            mIndex = 7;
+            mText = "APR";
+            break;
+        case 8:
+            mDate = 5;
+            mIndex = 8;
+            mText = "MAY";
+            break;
+        case 9:
+            mDate = 6;
+            mIndex = 9;
+            mText = "JUN";
+            break;
+        case 10:
+            mDate = 7;
+            mIndex = 10;
+            mText = "JUL";
+            break;
+        case 11:
+            mDate = 8;
+            mIndex = 11;
+            mText = "AUG";
+            break;
+        case 12:
+            mDate = 9;
+            mIndex = 12;
+            mText = "OCT";
+            break;
+        default:
+            mDate = 0;
+            mIndex = 0;
+    }
+
+}
+
+function determineMonthID() {
+
+switch(month) {
+    case "OCT":
+        monthID = 1; 
+        break;
+    case "NOV":
+        monthID = 2; 
+        break;
+    case "DEC":
+        monthID = 3;
+        break;
+    case "JAN":
+        monthID = 4;
+        break;
+    case "FEB":
+        monthID = 5;
+        break;
+    case "MAR":
+        monthID = 6;
+        break;
+    case "APR":
+        monthID = 7;
+        break;
+    case "MAY":
+        monthID = 8;
+        break;
+    case "JUN":
+        monthID = 9;
+        break;
+    case "JUL":
+        monthID = 10;
+        break;
+    case "AUG":
+        monthID = 11;
+        break;
+    case "SEP":
+        monthID = 12;
+        break;
+    default:
+        monthID = 0;
+}
+
+}
+
+function modAndUpdateTask() {
+    //alert("attempting to update task");
+    var taskInfo = document.getElementById("SPDisplayRelatedInfo_TaskChange");
+    var taskInfoArray = taskInfo.getElementsByTagName("td");
+    taskCanceled = taskInfoArray[2].innerText;
+    var useCanceled = false;
+
+    //alert("task canceled:" + taskCanceled);
+    var spotsThisMonth = taskInfoArray[3 + mIndex].innerText;
+    var spotsThisMonthArray = spotsThisMonth.split("\n");
+    var openTasks = parseInt(spotsThisMonthArray[0]); // Open spots number
+    if (openTasks > 0) {
+        taskSpot = parseInt(spotsThisMonthArray[1]) + 1;    // Filled spots number
+        //alert("task spot:" + taskSpot);
+    } 
+
+    var canceledArray = taskCanceled.split(",");
+    var spotIndex = 0;
+    //var stopCheck = false;  
+    //while (task in canceledArray && !stopCheck) {  
+    while (spotIndex < canceledArray.length) {
+        var canceledTaskArray = canceledArray[spotIndex].split("-");
+        if (canceledTaskArray.indexOf(mText) !== -1) {
+            taskSpot = canceledTaskArray[1];
+            taskCanceled = taskCanceled.replace(("," + canceledArray[spotIndex]), "");
+            document.querySelector("[title='.ChangeArray']").value = taskCanceled;
+            useCanceled = true;
+            spotIndex = canceledArray.length;
+            
+            //stopCheck = true;
+        }
+        spotIndex++;
+    }
+
+    if (openTasks > 0 || useCanceled) {
+
+        var taskQualArray1 = taskQual.split(": ");    //split qualGroup from qualLevel (SJ, SA, SH)
+        taskQualGroup = taskQualArray1[0];
+        var taskQualArray0 = taskQual.split("-");    //split from description
+        taskQualnumber = taskQualArray0[0];
+        
+        var q = taskQualArray0[0] + ":" + taskQualArray1[1];
+        //alert(q);
+        var newTitle = syName + "_" + q + "_" + mText + "_" + taskSpot;
+        //alert("new title:" + newTitle);
+        
+
+        document.querySelector("[title='Title']").value = newTitle;
+        document.querySelector("[title='Process']").value = 1; 
+
+        alert("Task Change completed successfully and Title updated.\nSelect a Process value and Save to route the request forward.")
+    } else {
+        alert("There are no open tasks for that Task and Month combination");
+    }
+}
+
+function modifyMonth() {
+//alert("attempting first to modify month");
+   var thisMonth = parseInt(document.querySelector("[title='MonthChange']").value);
+
+    if (thisMonth !== 0) {
+    //alert("attempting to modify month");
+    var monthInfo = document.getElementById("SPDisplayRelatedInfo_MonthChange");
+    var monthInfoArray = monthInfo.getElementsByTagName("td");
+    mDate = monthInfoArray[0].innerText;    //this used for figuring out the date
+    mText =  monthInfoArray[1].innerText;
+    mIndex =  parseInt(document.querySelector("[title='MonthChange']").value);
+    //mIndex = parseInt(taskInfoArray[2].innerText) / 100
+    //if (init > 1) {
+    
+        //var taskMonth = parseInt(document.querySelector("[title='MonthChange']").value);
+        monthChangeSelected = true;
+        determineMonthID();
+        //alert(taskMonth);
+        //determineMonth();
+        if (taskChangeSelected === true) {
+            //alert("ready to update");
+            modAndUpdateTask();
+        } else {
+            alert("To complete the month change you must also select the taskChange for the desired task.");
+        }
+    } else {
+        monthChangeSelected = false;
+        //alert("MonthChange cannot be blank!");
+    }
+    
+}
+
+function modifyTask() {
+    
+//alert("attempting to mod task");   
+    //if (init > 1) {
+    var thisTask = parseInt(document.querySelector("[title='TaskChange']").value);
+//parseInt(document.querySelector("[title='Process']").value);
+    if (thisTask !== 0) {
+        var taskInfo = document.getElementById("SPDisplayRelatedInfo_TaskChange");
+        var taskInfoArray = taskInfo.getElementsByTagName("td");
+        var syNew = taskInfoArray[0].innerText;
+        taskQual = taskInfoArray[1].innerText;
+        
+        document.querySelector("[title='Shipyard']").value = parseInt(syNew);
+        syElement = document.querySelector("[title='Shipyard']");
+        syName = syElement.options[syElement.selectedIndex].text;       
+
+        $().SPServices.SPDisplayRelatedInfo({
+            columnName: "Shipyard",
+            relatedList: "{29801c24-30c0-4d60-aa29-a1702085f044}",
+            relatedListColumn: "Shipyard_Name",
+            relatedColumns: ["Indoc", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP"],
+            displayFormat: "table",
+            CAMLQuery: "<Eq><FieldRef Name='Status'/><Value Type='Text'>Active</Value></Eq>",
+            debug: true
+        });
+
+
+        checkQuals();
+        if (document.querySelector("[title='IsValid']").value === "Yes") {
+            taskChangeSelected = true;
+            taskID = document.querySelector("[title='TaskChange']").value;
+
+            if (monthChangeSelected === true) {       
+                //alert("ready to update");
+                modAndUpdateTask();
+            } else {
+                alert("To complete the task change you must also select the monthChange for the desired month.");
+            }
+        } else {
+            taskChangeSelected = true;
+            document.querySelector("[title='IsValid']").value = "Yes";
+            alert("Using PM authority to override qualification mismatch!");
+        }
+
+    } else {
+        taskChangeSelected = false;
+        //alert("TaskChange cannot be blank!");
+    }
+
+}
+
+function overrideMode() {
+    overrideSelected = document.querySelector("[title='OverrideMode']").value;
+    if (init > 1) {
+        overrideSelected = document.querySelector("[title='OverrideMode']").value;
+        if (overrideSelected > 2) {
+            alert("Override mode! All Process options now available.\n\nNew fields now available: TaskChange & MonthChange.\nBoth fields are required to assign a new task!");
+
+            $("input[title='IsValid']").closest('tr').show();
+            $("select[Title='Shipyard']").prop("disabled", false);
+            $("input[title='Spot']").closest('tr').show();
+            //$("input[title='Stage']").closest('tr').show();
+            stage = 4;
+
+            $("select[title='TaskChange']").closest('tr').show();
+            $("select[title='TaskChange']").prop("disabled", false);
+            $("select[title='MonthChange']").closest('tr').show();
+            $("select[title='MonthChange']").prop("disabled", false);
+	        $("input[title='SpotChange']").closest('tr').show();
+
+            $().SPServices.SPFilterDropdown({
+                relationshipList: "{4d9a54f6-775c-43a1-9021-2f1afd534896}",
+                relationshipListColumn: "Title",
+                relationshipListSortAscending: true, 
+                relationshipListSortColumn: "Order",
+                columnName: "Process",
+                listName: $().SPServices.SPListNameFromUrl(),
+                noneText: "(None)",
+                CAMLQuery: "<And><Leq><FieldRef Name='Stage'/><Value Type='Number'>" + stage + "</Value></Leq>" 
+                    + "<Leq><FieldRef Name='Level'/><Value Type='Number'>" + userLevel + "</Value></Leq></And>",
+                CAMLQueryOptions: "<QueryOptions></QueryOptions>",
+                completefunc: null,
+                debug: true
+            }); 
+
+        } else {
+            $("input[title='IsValid']").closest('tr').hide();
+            $("select[title='Shipyard']").prop("disabled", true);
+            $("input[title='Spot']").closest('tr').hide();
+
+            $("select[title='TaskChange']").closest('tr').hide();
+            $("select[title='TaskChange']").prop("disabled", true);
+            $("select[title='MonthChange']").closest('tr').hide();
+            $("select[title='MonthChange']").prop("disabled", true);
+            $("input[title='SpotChange']").closest('tr').hide();
+
+            $().SPServices.SPFilterDropdown({
+                relationshipList: "{4d9a54f6-775c-43a1-9021-2f1afd534896}",
+                relationshipListColumn: "Title",
+                relationshipListSortAscending: true, 
+                relationshipListSortColumn: "Order",
+                columnName: "Process",
+                noneText: "(None)",
+                CAMLQuery: "<And><Geq><FieldRef Name='Stage'/><Value Type='Number'>" + stage + "</Value></Geq>" 
+                    + "<Geq><FieldRef Name='Level'/><Value Type='Number'>" + userLevel + "</Value></Geq></And>",
+                CAMLQueryOptions: "<QueryOptions></QueryOptions>",
+                completefunc: null,
+                debug: true
+            }); 
+        }
+        
+    } else if(init = 1 && userLevel == 5) {
+        alert("Override feature now fully functional!");
+    }
+    init++;
+}
+
+function processRequest() {
+    if (init > 1) {
+        var processValue = parseInt(document.querySelector("[title='Process']").value);
+
+        if (document.querySelector("[title='IsValid']").value === "Yes" && processValue !== 1) {
+            document.querySelector("[title='IsValid']").value = "N6saysYes";
+            alert("Validation passed and Process value accepted!\nClick 'Save' to commit changes and route request.");
+            
+                document.querySelector("[title='Status']").value = "Status pending...";
+                $("select[title='Status']").val( "Status pending..."); 
+        } else if (document.querySelector("[title='IsValid']").value === "N6saysYes" && processValue === 1) {
+            document.querySelector("[title='IsValid']").value = "Yes";
+        }
+
+        if (processValue === 4 && document.querySelector("[title='BCN']").value == "") {
+            document.querySelector("[title='BCN']").value = generateBCN();
+            document.querySelector("[title='Status']").value = "Status pending..."; 
+            //$("select[title='Status']").val( "Status pending...");
+        }
+    }
+    //init++;
+     
+}
+
+function generateBCN() {
+    var bcn = "2020" + syName + taskQualnumber + thisID;
+    return bcn;
+}
+
+function checkQuals() {
+    
+    //if (init !== 0) {
+    var allQuals = document.getElementById("SPDisplayRelatedInfo_Sailor_x0020_Name");
+    var allQualsArray = allQuals.getElementsByTagName("td");
+    unitName = allQualsArray[1].innerText;
+    var primaryQual = allQualsArray[2].innerText;
+    var additionalQuals = allQualsArray[3].innerText;
+    //alert(primaryQual);
+    
+    allQualsArray = additionalQuals.split(" ; ");
+    allQualsArray.push(primaryQual);
+    //alert(allQualsArray.join());
+
+
+    if (allQualsArray.indexOf(taskQual) == -1 && allQualsArray.indexOf(taskQual + ": SJ") == -1 && allQualsArray.indexOf(taskQual + ": SA") == -1 && allQualsArray.indexOf(taskQual + ": SH") == -1) {
+        alert("Sailor's quals in MQT do not match task");
+        document.querySelector("[title='IsValid']").value = "No";
+    } else {
+        document.querySelector("[title='IsValid']").value = "Yes";
+        alert("Sailor's quals in MQT align with this task.\nClick 'Open Resume Folder' link to review their resume then close that window.\nSelect a Process value to route request forward.");
+    }
+    //}
+    init++;
+    
+}
+
+function checkApprover() {
+
+    var currentUser = $().SPServices.SPGetCurrentUser({
+	fieldName: "ID", debug: false});
+    //alert("Logged in user ID is: " + currentUser);
+
+    return currentUser;
+}
+
+function getUserLevel() {
+
+    var userLevel = checkApprover; // or userLevel = 0;
+    alert("Logged in user ID is: " + currentUser);
+
+    return userLevel;
+}
+
+function lookupStaffAndPMs(){
+//Lookup PM and Staff usernames from _Shipyard list
+//alert("sy: " + sy);
+	try{
+	$().SPServices({
+        operation: "GetListItems",
+        listName: "_Shipyard",
+        async: false,
+        CAMLQuery: "<Query><Where><Eq><FieldRef Name='ID'/><Value Type='Counter'>" + sy + "</Value></Eq></Where></Query>",
+        //CAMLViewFields: "<ViewFields><FieldRef Name='PM' /><FieldRef Name='Staff' /></ViewFields>",
+        completefunc: function (xData, Status) {
+            //alert("lookupSY response: " + xData.responseText);//use this alert to see the list item returned
+            $(xData.responseXML).SPFilterNode("z:row").each(function(){
+                var tempPMs = String($(this).attr("ows_PM"));
+                var tempPMarr = tempPMs.split(";#");
+                
+                var tempSS = String($(this).attr("ows_Staff"));
+                var tempSSarr = tempSS.split(";#");
+                
+                //var tempSSandPMs = tempPMs + ";#" + tempSS;
+                //tempPMs.replace('#', '');
+                //alert("Program Managers: " + tempPMs);
+                //alert("Shipyard Staff: " + tempSS);
+                
+                if (tempPMs == 'undefined'){
+                    alert("PM is undefined");
+                }
+                else{
+                    var tempPMarray = tempPMs.split(";#");
+                    var PMnamesArray = [];
+
+                    for (var pmIndex = 0; pmIndex < tempPMarray.length; pmIndex+=2) {
+                        //alert("pmIndex: " + pmIndex);
+                        var tempPMid = parseInt(tempPMarray[pmIndex]);
+                        //alert("pmID: " + tempPMid);
+                        var tempPMname = tempPMarray[pmIndex + 1];
+                        //alert("pmName: " + tempPMname);
+                        PMnamesArray.push(tempPMname);
+
+                        if (tempPMid === currentUser) {
+                            userLevel = 5;
+                            //alert("Approver level 5. Hello PM, " + tempPMname + ".")
+                        }
+                    }    
+                PMs = PMnamesArray.join("; ");  
+                }
+
+                if (tempSS == 'undefined'){
+                    alert("SS is undefined");
+                }
+                else{
+                    var tempSSarray = tempSS.split(";#");
+                    var SSnamesArray = [];
+
+                    for (var ssIndex = 0; ssIndex < tempSSarray.length; ssIndex+=2) {
+                        //alert("ssIndex: " + ssIndex);
+                        var tempSSid = parseInt(tempSSarray[ssIndex]);
+                        //alert("ssID: " + tempSSid);
+                        if (tempSSid === currentUser) {
+                            userLevel = 4;
+                        }
+
+                        var tempSSname = tempSSarray[ssIndex + 1];
+                        //alert("ssName: " + tempSSname);
+                        SSnamesArray.push(tempSSname);
+                    }    
+                SS = SSnamesArray.join("; ");  
+                }
+
+                //alert("Shipyard PM is: " + PMs + "\n Shipyard Staff is: " +  SS);
+                                
+            });
+        }
+    });
+  }
+  catch(err2){
+  alert(err2.message);
+  }
+}
+
+function lookupTMs(){            
+//Lookup TM username from _TMs list
+	try{
+        var query1 = "<Query>" +
+                            "<Where><And>" +
+                                "<Eq><FieldRef Name='_Shipyard'/><Value Type='Lookup'>" + syName + "</Value></Eq>" +
+                                "<Contains><FieldRef Name='Support_x0020_Area'/><Value Type='TaxonomyFieldTypeMulti'>" + taskQualGroup + "</Value></Contains>" +
+                            "</And></Where>" +
+                        "</Query>";
+                        //alert(query1);
+        $().SPServices({
+            operation: "GetListItems",
+            listName: "_TMs",
+            async: false,
+            CAMLQuery: query1,
+            completefunc: function (xData, Status) {
+                //alert(xData.responseText);//use this alert to see the list item returned
+                $(xData.responseXML).SPFilterNode("z:row").each(function(){
+                    var tempTM1 = String($(this).attr("ows_TM_x0020_User_1"));
+                    var tempTM2 = String($(this).attr("ows_TM_x0020_User_2"));
+                    var tempTMs = tempTM1 + ";#" + tempTM2;
+                    //tempTMs.replace('#', '');
+                    //alert("Task Managers: " + tempTMs);
+                    
+                    if (typeof(tempTMs)=='undefined'){
+                        alert("TM is undefined");
+                        TMs = PMs;
+                    }
+                    else{
+                        var tempTMarray = tempTMs.split(";#");
+                        var TMnamesArray = [];
+
+                        for (var tmIndex = 0; tmIndex < tempTMarray.length; tmIndex+=2) {
+                            var tempTMid = parseInt(tempTMarray[tmIndex]);
+                            //alert("CurrentID = " + tempTMid);
+                            var tempTMname = tempTMarray[tmIndex + 1];
+
+                            if (tempTMid === currentUser) {
+                                userLevel = 3;
+                                alert("Approval level 3. Hello TM, " + tempTMname);
+                            }
+
+                            
+                            TMnamesArray.push(tempTMname);
+                        }    
+                        TMs = TMnamesArray.join("; ");    
+
+                    //TMs = tempTMarr[0];
+                    }
+                    //alert("Task Manager is: " + TMs);
+                });
+            }
+        });
+    }
+        catch(err2){
+        alert("Error looking up Task Manager. No one is assigned to " + syName + ", Shop " + qual + "\n " +
+        "System Error message: " + err2.message);
+    }
+}
+function lookupUAs(){            
+//Lookup UA usernames from UnitRoles
+	try{
+        var query1 = "<Query>" +
+                            "<Where>" +
+                                "<Eq><FieldRef Name='SMunitName'/><Value Type='Text'>" + unitName + "</Value></Eq>" +
+                            "</Where>" +
+                        "</Query>";
+                        //alert(query1);
+        $().SPServices({
+            operation: "GetListItems",
+            listName: "UnitRoles",
+            async: false,
+            CAMLQuery: query1,
+            completefunc: function (xData, Status) {
+				//alert(xData.responseText);//use this alert to see the list item returned
+				$(xData.responseXML).SPFilterNode("z:row").each(function(){
+                    var tempUAarray =[];
+                    var tempCO = String($(this).attr("ows_Unit_x0020_CO"));
+                    if (tempCO != 'undefined') tempUAarray.push(tempCO);
+
+                    var tempXO = String($(this).attr("ows_Unit_x0020_XO"));
+                    if (tempXO!= 'undefined') tempUAarray.push(tempXO);
+
+                    var tempSEL = String($(this).attr("ows_Unit_x0020_SEL"));
+                    if (tempSEL != 'undefined') tempUAarray.push(tempSEL);
+
+                    var tempSELalt = String($(this).attr("ows_Unit_x0020_SEL_x0020_Alternate"));
+                    if (tempSELalt != 'undefined') tempUAarray.push(tempSELalt);
+
+                    var tempUA = String($(this).attr("ows_Unit_x0020_Approver"));
+                    if (tempUA != 'undefined') tempUAarray.push(tempUA);
+
+                    var tempUAalt = String($(this).attr("ows_Unit_x0020_Approver_x0020_Altern"));
+                    if (tempUAalt != 'undefined') tempUAarray.push(tempUAalt);
+
+					var tempChiefs = String($(this).attr("ows_Unit_x0020_Chiefs"));
+                    if (tempChiefs != 'undefined') tempUAarray.push(tempChiefs);
+
+                    if (tempUAarray != null && tempUAarray.length > 0) {
+                        var tempAllUAs = tempUAarray.join(";#");
+                        //alert("Unit Approvers: " + tempAllUAs);
+                                     
+                        tempUAarray = tempAllUAs.split(";#");
+                        var UAnamesArray = [];
+                        var UAidsArray = [];
+
+                        for (var uaIndex = 0; uaIndex < tempUAarray.length; uaIndex+=2) {
+                            var tempUAid = parseInt(tempUAarray[uaIndex]);
+                            //alert("CurrentID = " + tempUAid);
+
+                            var tempUAname = tempUAarray[uaIndex + 1];
+                            if (tempUAid === currentUser) {
+                                userLevel = 2;
+                                alert("Approval level 2. Hello UA, " + tempUAname);
+                            }
+
+                            UAnamesArray.push(tempUAname);
+                            UAidsArray.push(tempUAid);
+                        }    
+                            UAs = UAidsArray.join("; "); 
+                            //UAs = UAnamesArray.join("; "); 
+                            //alert("UAs: " + UAs);
+                    } else {
+                        alert("UAs are undefined");
+                    }
+                    
+                    // exampleValue = COid;#COname;#XOid;#XOname;#SELid;#SELname;#;#UAid;#UAname;#;#Chief1id;#Chief1name;#Chief2id;#Chief2name
+                    
+				 
+
+                    
+                });
+            }
+        });
+    }
+        catch(err2){
+        alert("Error looking up Unit Approver. No one is assigned to this unit\n " +
+        "System Error message: " + err2.message);
+    }
+}
+
+function PreSaveAction() { 
+
+    $("input[Title='Title']").attr("disabled", "");
+    if (taskChanged) {
+        document.querySelector("[title='Task']").value = taskID; 
+        document.querySelector("[title='Month']").value = mText; 
+        document.querySelector("[title='Spot']").value = taskSpot; 
+        document.querySelector("[title='TaskChange']").value = task; 
+        document.querySelector("[title='MonthChange']").value = monthID; 
+        document.querySelector("[title='SpotChange']").value = spot;
+    } 
+
+    return true; 
+
+
+</script>
+SurgeMain AT Request Tool - Approve by selecting appropriate Process. 
+Add any clarifying notes if needed.

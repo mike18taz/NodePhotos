@@ -1,6 +1,6 @@
 /**
  * Update DB - load directory files directly to MongoDB
- * Created by Downs on 4/19/2019.
+ * Created by Downs on 7/19/2019.
  */
 let Mongo = require('mongodb').MongoClient;
 var async = require('async'),
@@ -9,13 +9,14 @@ var async = require('async'),
     fs = require('fs'),
     os = require('os'),
     local = require("../local.config.js");
-    //local = require("../config/env/local-development");
+        //local = require("../config/env/local-development");
 
 
 //let murl = local.config.db.uri;
 //let database = local.config.db.database;
 //var ps = local.config.db.poolSize
  //   ? local.config.db_config.poolSize : 5;
+
 
     
 var database = local.config.db_config.database

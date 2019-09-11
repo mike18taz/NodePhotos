@@ -1,0 +1,337 @@
+<script src="/sites/NAVSEA_RPO/SiteAssets/js/jquery-3.4.1.min2.js" type="text/javascript"></script>
+<script src="/sites/NAVSEA_RPO/SiteAssets/js/jquery.SPServices.min.js" type="text/javascript"></script>
+
+
+<script type="text/javascript">
+
+
+    JSRequest.EnsureSetup();
+
+    var init = 0;
+    var task = JSRequest.QueryString["Task"];
+
+    if (task == null || task == 'undefined') {
+
+    alert("Task invalid! Cannot complete request. \nPlease click Cancel and start over by selecting an available Unmet Need.");
+
+    $(document).ready(function() {
+
+    document.querySelector("[title='IsValid']").value = "No";
+    
+    $("select[Title='Task']").prop("disabled", true);
+    $("select[Title='Shipyard']").prop("disabled", true);
+    $("input[title='Qual']").attr('disabled', 'disabled');
+    
+    //$("select[title='Status']").prop("disabled", true);
+    $("input[title='Status']").attr('disabled', 'disabled');
+    //$("input[title='Status']").attr('disabled', 'disabled');
+    $("select[title='Status']").prop("disabled", true);
+    $("input[title='IsValid']").attr('disabled', 'disabled');
+    $("input[title='DateStart']").attr('disabled', 'disabled');
+    $("input[title='Title']").attr('disabled', 'disabled');
+    $('nobr:contains("IsValid")').closest('tr').hide();
+    $("select[title='Month']").closest('tr').hide();
+    $("input[title='Spot']").closest('tr').hide();
+    $("select[title='Status']").closest('tr').hide();
+    $("input[title='Status']").closest('tr').hide();
+    $("textarea[title='Approver Notes']").closest('tr').hide();
+    $("textarea[title='Reject Notes']").closest('tr').hide();
+    $("input[title='BCN']").closest('tr').hide();
+    $("select[title='Process']").closest('tr').hide();
+    $("input[title='thisID']").closest('tr').hide();
+
+    $("input[title='Stage']").closest('tr').hide();
+    $("select[title='OverrideMode']").closest('tr').hide();
+    $("select[title='TaskChange']").closest('tr').hide();
+    $("select[Title='TaskChange']").prop("disabled", true);
+    $("select[title='MonthChange']").closest('tr').hide();
+    $("input[title='SpotChange']").closest('tr').hide();
+    $("input[title='.ChangeArray']").closest('tr').hide();
+
+});
+
+
+    } else {
+    var sy = JSRequest.QueryString["SY"];
+    var shipyard = JSRequest.QueryString["Shipyard"];
+    var qual = JSRequest.QueryString["Area"];
+    var spot = JSRequest.QueryString["Spot"];
+    var month = JSRequest.QueryString["Month"];
+    var canceled = JSRequest.QueryString["Canceled"];
+    var year = JSRequest.QueryString["FY"];
+
+    // Sample Canceled parameter = n,JAN-2,FEB-1,FEB-2,NOV-1
+    // allQualsArray.indexOf(qual) == -1
+    if (canceled.length > 2) {
+        var canceledArray = canceled.split(",");
+        var spotIndex = 0;
+        //var stopCheck = false;  
+        //while (task in canceledArray && !stopCheck) {  
+        while (spotIndex < canceledArray.length) {
+            var canceledTaskArray = canceledArray[spotIndex].split("-");
+            if (canceledTaskArray.indexOf(month) !== -1) {
+                spot = canceledTaskArray[1];
+                canceled = canceled.replace(("," + canceledArray[spotIndex]), "");
+                spotIndex = canceledArray.length;
+                
+                //stopCheck = true;
+            }
+            spotIndex++;
+        }
+    } else {
+        canceled = "n";
+    }
+    
+
+    var yDateInt = parseInt(year);
+    var mDate;
+    var mIndex;
+
+    switch(month) {
+        case "OCT":
+            mDate = 10;
+            mIndex = 1;
+            yDateInt = yDateInt - 1; 
+            break;
+        case "NOV":
+            mDate = 11;
+            mIndex = 2;
+            yDateInt = yDateInt - 1; 
+            break;
+        case "DEC":
+            mDate = 12;
+            mIndex = 3;
+            yDateInt = yDateInt - 1; 
+            break;
+        case "JAN":
+            mDate = 1;
+            mIndex = 4;
+            break;
+        case "FEB":
+            mDate = 2;
+            mIndex = 5;
+            break;
+        case "MAR":
+            mDate = 3;
+            mIndex = 6;
+            break;
+        case "APR":
+            mDate = 4;
+            mIndex = 7;
+            break;
+        case "MAY":
+            mDate = 5;
+            mIndex = 8;
+            break;
+        case "JUN":
+            mDate = 6;
+            mIndex = 9;
+            break;
+        case "JUL":
+            mDate = 7;
+            mIndex = 10;
+            break;
+        case "AUG":
+            mDate = 8;
+            mIndex = 11;
+            break;
+        case "SEP":
+            mDate = 9;
+            mIndex = 12;
+            break;
+        default:
+            mDate = 0;
+            mIndex = 0;
+    }
+    
+    var yDate = yDateInt.toString();
+    
+    var shipyardArray = shipyard.split("%20");
+    shipyard = shipyardArray.join(" ");
+
+    var qualArray0 = qual.split("%20");
+    qual = qualArray0.join(" ");
+
+    var qualArray0 = qual.split("-");
+    var qualArray1 = qualArray0[1].split(": ");
+    //var qualArray1 =qual1.split(": ");
+    //var qual2 = qualArray1[1]
+    var q = qualArray0[0] + ":" + qualArray1[1];
+
+
+//var allCancelled = "0-0-1-0-0-3-3-2.2-3.2"    
+//var monthCancelled = allCancelled[mIndex-1];
+//var arrayCancelled = monthCancelled.split(".");
+
+//var cancelled = arrayCancelled.pop();
+
+//if (parseInt(cancelled) > 0) {
+//    spot = cancelled;
+//}
+
+// [0,0,0,0,0,0,0,0,0,0,0,0] = 0-0-0-0-0-3-3-2.2-3.2
+//console.log(arrayCancelled[3]);
+
+
+    //alert("All fields are required!");
+    //alert("SMART is currently unavailable for processing requests due to the server being down.\nPlease check back later.");
+
+$(document).ready(function() {
+
+    document.querySelector("[title='Task']").value = parseInt(task);  
+    document.querySelector("[title='Shipyard']").value = parseInt(sy);  
+    document.querySelector("[title='Qual']").value = qual; 
+    document.querySelector("[title='Month']").value = month;
+    document.querySelector("[title='Spot']").value = spot;
+    document.querySelector("[title='.ChangeArray']").value = canceled; 
+    document.querySelector("[title='Status']").value = "Initial"; 
+    document.querySelector("[title='Title']").value = shipyard + "_" + q + "_" + month + "_" + spot;  
+ 
+    //$('nobr:contains("Shipyard")').closest('tr').attr('disabled', 'disabled');
+    
+    $("select[Title='Task']").prop("disabled", true);
+    $("select[Title='Shipyard']").prop("disabled", true);
+    $("input[title='Qual']").attr('disabled', 'disabled');
+    $("input[title='Status']").prop("disabled", true);
+    $("input[title='thisID']").closest('tr').hide();
+    //$('nobr:contains("Status")').closest('tr').attr('disabled', 'disabled');
+    //$('nobr:contains("Title")').closest('tr').attr(readonly="readonly");
+    //$("input[title='IsValid']").attr('disabled', 'disabled');
+    $("input[title='DateStart']").attr('disabled', 'disabled');
+    $("input[title='Title']").attr('disabled', 'disabled');
+    $('nobr:contains("IsValid")').closest('tr').hide();
+    $("select[title='Month']").closest('tr').hide();
+    $("input[title='Spot']").closest('tr').hide();
+    $("textarea[title='Approver Notes']").closest('tr').hide();
+    $("textarea[title='Reject Notes']").closest('tr').hide();
+    $("input[title='BCN']").closest('tr').hide();
+    $("select[title='Process']").closest('tr').hide();
+    $("input[title='thisID']").closest('tr').hide();
+
+    $("input[title='Stage']").closest('tr').hide();
+    $("select[title='OverrideMode']").closest('tr').hide();
+    $("select[title='TaskChange']").closest('tr').hide();
+    $("select[Title='TaskChange']").prop("disabled", true);
+    $("select[title='MonthChange']").closest('tr').hide();
+    $("input[title='SpotChange']").closest('tr').hide();
+    $("input[title='.ChangeArray']").closest('tr').hide();
+
+
+$().SPServices.SPFilterDropdown({
+    relationshipWebURL: "/sites/NAVSEA_RPO",
+    relationshipList: "{d77298fa-89d9-4caf-a2b2-bb16600f41e4}",
+    relationshipListColumn: "Sailor_x0020_Name",
+    columnName: "Sailor name",
+    noneText: "(None)",
+    CAMLQuery: "<And><Eq><FieldRef Name='Per_O/E'/><Value Type='Text'>E</Value></Eq>" 
+                + "<Eq><FieldRef Name='Select1'/><Value Type='Text'>SURGEMAIN</Value></Eq></And>",
+            CAMLQueryOptions: "<QueryOptions></QueryOptions>",
+    debug: false
+  });
+
+  $().SPServices.SPDisplayRelatedInfo({
+      columnName: "Shipyard",
+      relatedList: "{29801c24-30c0-4d60-aa29-a1702085f044}",
+      relatedListColumn: "Shipyard_Name",
+      relatedColumns: ["Indoc", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP"],
+      displayFormat: "table",
+      completefunc: setStartDate,
+      CAMLQuery: "<Eq><FieldRef Name='Status'/><Value Type='Text'>Active</Value></Eq>",
+      debug: true
+  });
+//relatedList: "{E1D8696A-0096-4A41-8C9E-8BBA35EF0665}",
+
+  $().SPServices.SPDisplayRelatedInfo({
+    columnName: "Sailor Name",
+    relatedList: "{d77298fa-89d9-4caf-a2b2-bb16600f41e4}",
+    relatedListColumn: "Sailor_x0020_Name",
+    relatedColumns: ["PRIMARY_QUAL", "ADDITIONAL_QUALS", "Preferred_x0020_Email", "Resume", "DocsCount", "TasksRequested"],
+    displayFormat: "list",
+    completefunc: checkQuals,
+    debug: true
+  });
+
+});
+}
+
+function checkQuals() {
+    if (init != 0) {
+        var allQuals = document.getElementById("SPDisplayRelatedInfo_Sailor_x0020_Name");
+        var allQualsArray = allQuals.getElementsByTagName("td");
+        var primaryQual = allQualsArray[0].innerText;
+        var additionalQuals = allQualsArray[1].innerText;
+        var preferredEmail = allQualsArray[2].innerText;
+        var resumeFolder = allQualsArray[3].innerText;
+        var docsCount = allQualsArray[4].innerText; 
+        var tasksRequested = parseInt(allQualsArray[5].innerText);
+    //alert(primaryQual);
+    
+        var allQualsArray = additionalQuals.split(" ; ");
+        allQualsArray.push(primaryQual);
+        //alert(allQualsArray.join());
+
+	var validIssue = "";
+
+        if (docsCount < 1) {
+            if (resumeFolder == "View Resume Folder") {
+                alert("You have created your Resume Folder but have not added your Resume.\n" +
+                "Click 'View Resume Folder' to add your Resume then close that window.\n\n" +
+                "*Avoid having to refresh the page by clicking on another name and then yours again.")
+            } else {
+            
+            alert("Resume is required before this Sailor can apply for a task!\n" +
+                "Click 'Create Resume Folder' to create your folder and then add your resume.\n\n" +
+                "*Once you have added your Resume you can use the 'Back' button to return to your request.");
+	    }
+            validIssue = "Resume is missing.\n";
+        }
+
+        if (allQualsArray.indexOf(qual) == -1 && allQualsArray.indexOf(qual + ": SJ") == -1 && allQualsArray.indexOf(qual + ": SA") == -1 && allQualsArray.indexOf(qual + ": SH") == -1) {
+            //alert("This Sailor is not qualified for this task!");
+            validIssue = validIssue + "Not qualified for this task.\n";
+        } else {
+            //document.querySelector("[title='IsValid']").value = "N6saysYes";
+            alert("This Sailor is qualified for this task.");
+        }
+
+        if (tasksRequested > 0) {
+            //alert("This Sailor already has a current Task Request!");
+            validIssue = validIssue + "A Task Request has already been submitted.\n";
+        } else {
+            //document.querySelector("[title='IsValid']").value = "N6saysYes";
+        }
+        if (preferredEmail == "" || preferredEmail == null) {
+            $("input[title='Preferred Email']").closest('tr').show();
+            alert("A preferred email address is required.");
+            //validIssue = validIssue + "Missing Preferred Email Address\n";
+        } else {
+            document.querySelector("[title='Preferred Email']").value = preferredEmail;
+            //$("input[title='Preferred Email']").closest('tr').hide();
+        }
+
+        if (validIssue == "") {
+            document.querySelector("[title='IsValid']").value = "N6saysYes";
+        } else {
+            alert("Cannot apply at this time for the following reasons: \n" + validIssue);
+            document.querySelector("[title='IsValid']").value = validIssue;
+        }
+
+    }
+    init++;
+}
+
+function setStartDate() {
+    var allDays = document.getElementById("SPDisplayRelatedInfo__Shipyard");
+    var allDaysArray = allDays.getElementsByTagName("td");
+    var dDate = allDaysArray[mIndex].innerText;
+
+    var startDateString = mDate + "/" + dDate + "/" + yDate;
+    //alert(startDateString);
+    $("input[Title='DateStart']").val(startDateString);
+    $("input[Title^='DateEnd']").val(startDateString);
+}
+
+
+</script>
+SurgeMain AT Request Tool - Select or fill in reponses. 
+Resumes are linked automatically from Sailor's TRAQS profile.
